@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import axios from 'axios';
 import { connectDB } from './configs/database.js'; // Giả sử các file này đã được sửa thành .js nếu cần
 import { WordService } from './services/word.service.js';
+import wordRoutes from './routes/word.routes.js'; // <-- IMPORT MỚI
 
 // --- ĐỊNH NGHĨA KIỂU DỮ LIỆU CHO API RESPONSE ---
 interface Phonetic {
@@ -102,6 +103,8 @@ app.post('/api/lookup', async (req, res) => {
         res.status(500).json({ error: "An internal server error occurred." });
     }
 });
+app.use('/api/words', wordRoutes); // <-- DÒNG MỚI
+
 app.get('/', (req, res) => {
     res.status(200).json({
         status: 'ok',
