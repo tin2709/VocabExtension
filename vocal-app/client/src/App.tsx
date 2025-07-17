@@ -1,23 +1,39 @@
-import { useState, useEffect } from 'react'
-import './App.css'
+import { useEffect } from 'react';
+import './App.css';
+import { WordLookup } from './components/WordLookup';
+
+// Khai báo kiểu cho window để TypeScript không báo lỗi
+declare global {
+    interface Window {
+        google: any;
+        googleTranslateElementInit: () => void;
+    }
+}
 
 function App() {
-    const [message, setMessage] = useState('');
-
     useEffect(() => {
-        fetch('/api/greeting')
-            .then((res) => res.json())
-            .then((data) => setMessage(data.message));
+        window.googleTranslateElementInit = () => {
+            new window.google.translate.TranslateElement(
+                { pageLanguage: 'en', includedLanguages: 'vi', autoDisplay: false },
+                'google_translate_element'
+            );
+        };
+
+        if (!document.querySelector('#google-translate-script')) {
+            const script = document.createElement('script');
+            script.id = 'google-translate-script';
+            script.src = `//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit`;
+            script.async = true;
+            document.body.appendChild(script);
+        }
     }, []);
 
     return (
-        <>
-            <h1>Vite + React + Node.js</h1>
-            <div className="card">
-                <p>Message from server: <strong>{message || 'Loading...'}</strong></p>
-            </div>
-        </>
-    )
+        <div className="bg-gray-900 min-h-screen">
+            <div id="google_translate_element" style={{ display: 'none' }}></div>
+            <WordLookup />
+        </div>
+    );
 }
 
-export default App
+export default App;
