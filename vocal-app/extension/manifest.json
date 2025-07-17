@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Vocal-App Lookup",
+  "version": "1.0",
+  "description": "Look up words, save them to the database, and highlight them on any page.",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "content.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
+  "commands": {
+    "save-and-highlight": {
+      "suggested_key": {
+        "default": "Ctrl+Q",
+        "mac": "Command+Q"
+      },
+      "description": "Save and highlight the selected word."
+    }
+  },
+  "host_permissions": [
+    "http://localhost:3001/*"
+  ]
+}
