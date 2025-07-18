@@ -1,9 +1,8 @@
-const API_BASE_URL = 'https://vocabextension.onrender.com/';
+const API_BASE_URL = 'https://vocabextension.onrender.com/api';
 
 // 1. Lắng nghe yêu cầu tra cứu từ content.js
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'lookup') {
-        // Sử dụng async/await để xử lý bất đồng bộ
         (async () => {
             try {
                 const response = await fetch(`${API_BASE_URL}/lookup`, {
@@ -11,20 +10,30 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ word: message.word })
                 });
+
+                // Kiểm tra nếu response không thành công (vd: 404, 500)
+                if (!response.ok) {
+                    // Cố gắng đọc lỗi từ server, nếu không được thì dùng statusText
+                    const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                    throw new Error(errorData.error || `Server responded with status ${response.status}`);
+                }
+
                 const data = await response.json();
                 if (!data.error) {
-                    data.word = message.word; // Thêm lại từ gốc để hiển thị
+                    data.word = message.word;
                 }
-                sendResponse({ data });
+                // Gửi về dữ liệu thành công
+                sendResponse({ data: data });
+
             } catch (error) {
-                console.error('Error during lookup fetch:', error);
-                sendResponse({ error: error.message });
+                console.error('Error during lookup fetch:', error.message);
+                // SỬA LỖI: Gói lỗi vào trong thuộc tính 'data'
+                sendResponse({ data: { error: error.message } });
             }
         })();
-        return true; // Quan trọng: Giữ kênh message mở cho phản hồi bất đồng bộ
+        return true;
     }
 });
-
 // 2. Lắng nghe lệnh Ctrl+Q
 chrome.commands.onCommand.addListener(async (command) => {
     if (command === "save-and-highlight") {
