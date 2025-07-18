@@ -52,6 +52,7 @@ app.post('/api/lookup', async (req, res) => {
             console.log(`✅ Fetched "${word}" from MongoDB cache.`);
             const responseData = {
                 ipa: dataFromDb.ipa,
+                audioUrl: dataFromDb.audioUrl, // <-- TRẢ VỀ CẢ AUDIO URL
                 meanings: dataFromDb.meanings.map(m => m.meaning), // Ở đây 'm' cũng được suy luận đúng kiểu
                 examples: dataFromDb.examples.map(e => ({ sentence: e.sentence, explanation: e.explanation }))
             };
@@ -69,10 +70,13 @@ app.post('/api/lookup', async (req, res) => {
             return res.status(404).json({ error: `Sorry, we could not find definitions for the word "${word}".` });
         }
         const apiData = apiResponse.data[0];
-
+        const phoneticWithAudio = apiData.phonetics.find((p: any) => p.audio);
+        const audioUrl = phoneticWithAudio ? phoneticWithAudio.audio : '';
         // Giờ đây, TypeScript biết chính xác kiểu của 'm' và 'd'
         const formattedData = {
             ipa: apiData.phonetic || (apiData.phonetics.find(p => p.text)?.text ?? ''),
+            audioUrl: audioUrl, // <-- THÊM AUDIO URL VÀO ĐÂY
+
             meanings: apiData.meanings
                 .flatMap(m => m.definitions.map(d => d.definition))
                 .slice(0, 5),
@@ -87,6 +91,7 @@ app.post('/api/lookup', async (req, res) => {
         await WordService.createWord({
             word: word,
             ipa: formattedData.ipa,
+            audioUrl: formattedData.audioUrl, // <-- TRUYỀN VÀO ĐÂY
             meanings: formattedData.meanings.map(m => ({ meaning: m })),
             examples: formattedData.examples,
         });

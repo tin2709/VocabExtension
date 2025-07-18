@@ -4,6 +4,7 @@ import WordModel, { IWord } from '../models/word.model.js';
 interface WordCreationData {
     word: string;
     ipa: string;
+    audioUrl?: string;
     meanings: { meaning: string }[];
     examples: { sentence: string; explanation: string }[];
 }
@@ -27,6 +28,7 @@ export class WordService {
         const newWord = new WordModel({
             word: data.word,
             ipa: data.ipa,
+            audioUrl: data.audioUrl,
             meanings: data.meanings,
             examples: data.examples,
         });

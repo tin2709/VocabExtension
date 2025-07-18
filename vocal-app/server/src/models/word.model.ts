@@ -4,6 +4,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IWord extends Document {
     word: string;
     ipa: string;
+    audioUrl?: string;
     meanings: { meaning: string }[];
     examples: { sentence: string; explanation: string }[];
 }
@@ -12,6 +13,7 @@ export interface IWord extends Document {
 const WordSchema: Schema = new Schema({
     word: { type: String, required: true, unique: true, index: true, lowercase: true },
     ipa: { type: String },
+    audioUrl: { type: String },
     meanings: [{
         meaning: { type: String, required: true }
     }],
