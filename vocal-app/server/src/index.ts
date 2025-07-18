@@ -5,6 +5,7 @@ import axios from 'axios';
 import { connectDB } from './configs/database.js'; // Giả sử các file này đã được sửa thành .js nếu cần
 import { WordService } from './services/word.service.js';
 import wordRoutes from './routes/word.routes.js'; // <-- IMPORT MỚI
+import { authMiddleware, AuthRequest } from './middleware/auth.middleware.js';
 
 // --- ĐỊNH NGHĨA KIỂU DỮ LIỆU CHO API RESPONSE ---
 interface Phonetic {
@@ -38,16 +39,18 @@ const port = process.env.PORT || 3001;
 // --- MIDDLEWARE ---
 app.use(cors());
 app.use(express.json());
+app.use('/api', authMiddleware);
 
 // --- ROUTES ---
-app.post('/api/lookup', async (req, res) => {
+app.post('/api/lookup', async (req: AuthRequest, res) => {
     try {
+        const userId = req.user!.id; // Lấy userId từ middleware
         const { word } = req.body;
         if (!word || typeof word !== 'string') {
             return res.status(400).json({ error: "A 'word' string is required in the request body." });
         }
 
-        const dataFromDb = await WordService.getByWord(word);
+        const dataFromDb = await WordService.getByWord(word, userId);
         if (dataFromDb) {
             console.log(`✅ Fetched "${word}" from MongoDB cache.`);
             const responseData = {
@@ -94,6 +97,7 @@ app.post('/api/lookup', async (req, res) => {
             audioUrl: formattedData.audioUrl, // <-- TRUYỀN VÀO ĐÂY
             meanings: formattedData.meanings.map(m => ({ meaning: m })),
             examples: formattedData.examples,
+            userId: userId,
         });
         console.log(`💾 Saved "${word}" to MongoDB.`);
 

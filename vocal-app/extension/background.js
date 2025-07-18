@@ -7,7 +7,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             try {
                 const response = await fetch(`${API_BASE_URL}/lookup`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: headers,
                     body: JSON.stringify({ word: message.word })
                 });
 
@@ -40,9 +40,16 @@ chrome.commands.onCommand.addListener(async (command) => {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         if (tab) {
             try {
-                const response = await chrome.tabs.sendMessage(tab.id, { type: 'get_word_data_for_saving' });
-                if (response && response.data) {
-                    await saveWordToDatabase(response);
+                // Yêu cầu content script mở prompt nhập tag
+                const tagsString = await chrome.tabs.sendMessage(tab.id, { type: 'get_tags_from_user' });
+                // Nếu người dùng không hủy prompt
+                if (tagsString !== null) {
+                    const tags = tagsString.split(',').map(t => t.trim()).filter(Boolean);
+                    // Sau đó mới lấy dữ liệu từ và gửi đi lưu
+                    const response = await chrome.tabs.sendMessage(tab.id, { type: 'get_word_data_for_saving' });
+                    if (response && response.data) {
+                        await saveWordToDatabase({ ...response, tags });
+                    }
                 }
             } catch (e) {
                 console.error("Could not communicate with content script:", e);
@@ -58,13 +65,14 @@ async function saveWordToDatabase({ word, data }) {
         word: word,
         ipa: data.ipa,
         meanings: data.meanings.map(m => ({ meaning: m })),
-        examples: data.examples
+        examples: data.examples,
+        tags: tags
     };
 
     try {
         const response = await fetch(`${API_BASE_URL}/words`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(payload)
         });
         const savedData = await response.json();
@@ -72,4 +80,19 @@ async function saveWordToDatabase({ word, data }) {
     } catch (err) {
         console.error('Error saving to DB:', err);
     }
+}
+async function getAuthHeaders() {
+    return new Promise((resolve, reject) => {
+        chrome.identity.getProfileUserInfo({ 'accountStatus': 'ANY' }, (userInfo) => {
+            if (chrome.runtime.lastError || !userInfo || !userInfo.id) {
+                reject('Could not get user info. Please make sure you are signed in to Chrome.');
+                return;
+            }
+            resolve({
+                'Content-Type': 'application/json',
+                'x-user-google-id': userInfo.id,
+                'x-user-email': userInfo.email,
+            });
+        });
+    });
 }

@@ -5,7 +5,8 @@
   "description": "Look up words, save them to the database, and highlight them on any page.",
   "permissions": [
     "storage",
-    "activeTab"
+    "activeTab",
+    "identity"
   ],
   "background": {
     "service_worker": "background.js",

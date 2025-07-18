@@ -48,6 +48,10 @@ tooltip.addEventListener('click', (event) => {
 // 4. Lắng nghe các tin nhắn từ các phần khác của extension (background, popup)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.type) {
+        case 'get_tags_from_user':
+            const tags = prompt("Enter tags for this word, separated by commas (e.g., work, tech, ielts):", "");
+            sendResponse(tags);
+            break;
         case 'get_word_data_for_saving':
             const selectedText = window.getSelection().toString().trim().toLowerCase();
             const dataToSave = sessionStorage.getItem(selectedText);
@@ -65,6 +69,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }
             break;
     }
+    if (message.type === 'get_tags_from_user') return true;
+
 });
 
 
