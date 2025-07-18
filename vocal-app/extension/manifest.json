@@ -31,6 +31,7 @@
     }
   },
   "host_permissions": [
-    "http://localhost:3001/*"
+    "https://vocal-app-server.onrender.com/*"
+
   ]
 }
