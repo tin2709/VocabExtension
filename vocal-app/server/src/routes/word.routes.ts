@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { WordController } from '../controllers/word.controller';
+import { WordController } from '../controllers/word.controller.js';
 
 const router = Router();
 
