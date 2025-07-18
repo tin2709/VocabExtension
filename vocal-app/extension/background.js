@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'https://vocabextension.onrender.com/';
 
 // 1. Lắng nghe yêu cầu tra cứu từ content.js
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
