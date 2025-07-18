@@ -7,6 +7,8 @@ interface WordCreationData {
     audioUrl?: string;
     meanings: { meaning: string }[];
     examples: { sentence: string; explanation: string }[];
+    tags?: string[];
+    userId: string; // Nhận userId dạng chuỗi
 }
 
 export class WordService {
@@ -15,7 +17,7 @@ export class WordService {
      * @param word - Từ cần tìm (dạng chuỗi)
      * @returns - Document của từ nếu tìm thấy, hoặc null
      */
-    static async getByWord(word: string): Promise<IWord | null> {
+    static async getByWord(word: string, userId: string): Promise<IWord | null> {
         return WordModel.findOne({ word: word.toLowerCase() });
     }
 
@@ -31,7 +33,13 @@ export class WordService {
             audioUrl: data.audioUrl,
             meanings: data.meanings,
             examples: data.examples,
+            tags: data.tags || [],
+            userId: data.userId,
         });
         return newWord.save();
+    }
+    static async getAllWordStrings(userId: string): Promise<string[]> {
+        const words = await WordModel.find({ userId: userId }, { word: 1, _id: 0 });
+        return words.map(w => w.word);
     }
 }

@@ -7,6 +7,8 @@ export interface IWord extends Document {
     audioUrl?: string;
     meanings: { meaning: string }[];
     examples: { sentence: string; explanation: string }[];
+    tags: string[]; // <-- THÊM MỚI
+    userId: mongoose.Schema.Types.ObjectId; // <-- THÊM MỚI: Liên kết với User
 }
 
 // Tạo Schema (bản thiết kế) cho Mongoose
@@ -21,7 +23,9 @@ const WordSchema: Schema = new Schema({
         sentence: { type: String, required: true },
         explanation: { type: String, required: true }
     }],
-}, {
+    tags: [{ type: String, trim: true, lowercase: true }], // <-- THÊM MỚI
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true
+    }}, {
     timestamps: true // Tự động thêm createdAt và updatedAt
 });
 
